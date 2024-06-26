@@ -567,9 +567,129 @@ app.get('/podelete/:id', (request, response)=>{
 ///////////////////////////////
 ///////Billing Schedule////////
 ///////////////////////////////
-app.get('/bsproject', (request, response)=>{
-  response.render('bsproject', {});
+app.get('/bsproject/:popMsg/:border', (request, response)=>{
+  const popMsg = request.params.popMsg;
+  const border = request.params.border;
+  const sql = `SELECT projectno from projects`;
+  db.all(sql, (error, projects)=>{
+    if(error){
+      console.log(error.message);
+      const errorName = error.name;
+      const errorMessage = error.message;
+      const errorDetails = "Error loading projects";
+      response.render("errorPage", {errorName, errorMessage, errorDetails})
+    } else {
+      response.render('bsproject', {projects, popMsg, border});
+    }
+  });
 });
+
+///////////////////////////////
+///////Billing Schedule////////
+///////////////////////////////
+app.post('/bs', (request, response)=>{
+  const popMsg = '';
+  const border = '';
+  const projectno = request.body.projectno;
+  let sql = `SELECT
+                  bs.id, bs.projectno, bs.bsno, bs.assyno, bs.section, bs.description, bs.customerref, 
+                  bs.qty, bs.unitid, u.Units, bs.billingvalue, bs.remarks, sum(bs.billingvalue) over () bstotal, po.basicpovalue pototal  
+                FROM billingscheduledata bs
+                LEFT JOIN customerpo po ON po.projectno = bs.projectno
+                LEFT JOIN units u ON u.id = bs.unitid
+                WHERE bs.projectno = ?`;
+  db.all(sql, projectno, (error, rows)=>{
+    if(error){
+      console.log(error.message);
+      const errorName = error.name;
+      const errorMessage = error.message;
+      const errorDetails = "Error loading projects";
+      response.render("errorPage", {errorName, errorMessage, errorDetails})
+    } else {
+      sql = `SELECT id, Units from Units`;
+      db.all(sql, (error, units)=>{
+        if(error){
+          console.log(error.message);
+          const errorName = error.name;
+          const errorMessage = error.message;
+          const errorDetails = "Error loading projects";
+          response.render("errorPage", {errorName, errorMessage, errorDetails})
+        } else {
+          response.render('bs', {rows, units, projectno, popMsg, border});
+        }
+      });
+    }
+  });
+});
+
+///////////////////////////////
+///////Billing Schedule////////
+///////////////////////////////
+app.get('/bs/:projectno/:msg/:border', (request, response)=>{
+  const popMsg = request.params.popMsg;
+  const border = request.params.border;
+  const projectno = request.body.projectno;
+  let sql = `SELECT
+                  bs.id, bs.projectno, bs.bsno, bs.assyno, bs.section, bs.description, bs.customerref, 
+                  bs.qty, bs.unitid, u.Units, bs.billingvalue, bs.remarks, sum(bs.billingvalue) over () bstotal, po.basicpovalue pototal  
+                FROM billingscheduledata bs
+                LEFT JOIN customerpo po ON po.projectno = bs.projectno
+                LEFT JOIN units u ON u.id = bs.unitid
+                WHERE bs.projectno = ?`;
+  db.all(sql, projectno, (error, rows)=>{
+    if(error){
+      console.log(error.message);
+      const errorName = error.name;
+      const errorMessage = error.message;
+      const errorDetails = "Error loading projects";
+      response.render("errorPage", {errorName, errorMessage, errorDetails})
+    } else {
+      sql = `SELECT id, Units from Units`;
+      db.all(sql, (error, units)=>{
+        if(error){
+          console.log(error.message);
+          const errorName = error.name;
+          const errorMessage = error.message;
+          const errorDetails = "Error loading projects";
+          response.render("errorPage", {errorName, errorMessage, errorDetails})
+        } else {
+          response.render('bs', {rows, units, projectno, popMsg, border});
+        }
+      });
+    }
+  });
+});
+
+////////////////////////////////////
+///////Billing Schedule Save////////
+////////////////////////////////////
+app.post('/bssave', (request, response)=>{
+  const projectno = request.body.projectno;
+  const bsno = request.body.bsno;
+  const assyno = request.body.assyno;
+  const section = request.body.section;
+  const description = request.body.description;
+  const customerref = request.body.customerref;
+  const billingvalue = parseFloat(request.body.billingvalue);
+  const qty = parseInt(request.body.qty);
+  const unitid = parseInt(request.body.units);
+  const remarks = request.body.remarks;
+  let sql = `INSERT INTO billingscheduledata 
+              (projectno, bsno, assyno, section, description, customerref, qty, unitid, billingvalue, remarks) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  db.run(sql, [projectno, bsno, assyno, section, description, customerref, qty, unitid, billingvalue, remarks], (error, rows)=>{
+    if(error){
+      console.log(error.message);
+      const errorName = error.name;
+      const errorMessage = error.message;
+      const errorDetails = "Error writing Billing Schedule";
+      response.render("errorPage", {errorName, errorMessage, errorDetails})
+    } else {
+      response.redirect(`/bs/${projectno}/Billing Schedule Saved/green`);
+    }
+  });
+});
+
 /////////////////////////////
 ///////Start the server//////
 /////////////////////////////

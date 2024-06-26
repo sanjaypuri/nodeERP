@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mas Group - Customer PO New</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <style>
+      .alertDiv {
+        font-size: 1.25rem;
+        color: black;
+        border-width: 3px;
+        border-style: solid;
+        border-radius: 25px;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 300px;
+        text-align: center;
+        display: none;
+        padding: 10px 5px;
+      }
+  </style>
+  </head>
+  <body class="bg-dark text-light">
+    <%- include('navbar') %>
+    <div id="alertDiv" class="alertDiv"></div>
+    <div class="container">
+      <div class="text-center fs-3">New Customer PO</div>
+      <form action="/customerpoadd" method="post">
+        <div class="row">
+          <div class="col-3">Project No</div>
+          <div class="col">PO No</div>
+          <div class="col-2">PO Date</div>
+          <div class="col-2">Delivery Date</div>
+        </div>
+        <div class="row">
+          <div class="col-3">
+            <select class="form-select" id="projectno" name="projectno">
+              <option value="0" selected>Select...</option>
+              <% projects.map((project)=>{ %>
+                <option value="<%= project.projectno %>"><%= project.projectno %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="pono" name="pono" required>
+          </div>
+          <div class="col-2">
+            <input type="date" class="form-control" id="podate" name="podate" required>
+          </div>
+          <div class="col-2">
+            <input type="date" class="form-control" id="contractualdelivery" name="contractualdelivery" required>
+          </div>
+        </div>
+        <div class="row mt-2">
+          <div class="col">Basic Value</div>
+          <div class="col">Taxes</div>
+          <div class="col">Advance</div>
+          <div class="col">Retention</div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <input type="number" min="1" step="1" class="form-control text-end" id="basicvalue" name="basicvalue" required>
+          </div>
+          <div class="col">
+            <input type="number" min="1" step="1" class="form-control text-end" id="totaltaxes" name="totaltaxes" required>
+          </div>
+          <div class="col">
+            <input type="number" min="1" step="1" class="form-control text-end" id="totaladvances" name="totaladvances" required>
+          </div>
+          <div class="col">
+            <input type="number" min="1" step="1" class="form-control text-end" id="totalretention" name="totalretention" required>
+          </div>
+        </div>
+        <div class="row mt-2">
+          <div class="col">Packing & Forwading</div>
+          <div class="col">Transport</div>
+          <div class="col">Insurance</div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <input type="text" class="form-control" id="packing" name="packing">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="transport" name="transport">
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" id="insurance" name="insurance">
+          </div>
+        </div>
+        <div class="row mt-2">
+          <div class="col-3">Inco Terms</div>
+          <div class="col">Payment Terms</div>
+        </div>
+        <div class="row">
+          <div class="col-3">
+            <input type="text" class="form-control" id="incoterms" name="incoterms"><br>
+            KOM Date
+            <input type="date" class="form-control" id="komdate" name="komdate">
+          </div>
+          <div class="col">
+            <textarea class="form-control" id="paymentterms" rows="5"></textarea>
+          </div>
+        </div>
+        <div class="row mt-4">
+          <div class="col-6 offset-3">
+            <button class="btn btn-primary w-100" type="submit" id="btnSubmit">Save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+      thisMsg = '';
+      function showAlert(msg, color, duration){
+        const alertDiv = document.getElementById('alertDiv')
+        alertDiv.innerText = msg;
+        alertDiv.style.borderColor = color;
+        if(color == 'red'){
+          alertDiv.style.backgroundColor = 'pink';
+        }
+        if(color == 'green'){
+          alertDiv.style.backgroundColor = 'palegreen';
+        }
+        if(color == 'blue'){
+          alertDiv.style.backgroundColor = 'powderblue';
+        }
+        alertDiv.style.display = 'block';
+        setTimeout(() => {
+          alertDiv.style.display = 'none';
+        }, duration*1000);
+      };
+
+      function validForm(){
+        const projectno = document.getElementById('projectno').value;
+        
+        if (projectno === "0"){
+          thisMsg = 'Please select the Project No';
+          return false;
+        }
+        return true;
+      };
+
+      document.getElementById('btnSubmit').addEventListener('click', function(event){
+        if(!validForm()){
+          event.preventDefault();
+          showAlert(thisMsg, 'red', 2)
+        }
+      });
+
+    </script>
+  </body>
+</html>

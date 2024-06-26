@@ -390,15 +390,17 @@ app.post('/projectedit', (request, response)=>{
 /////////////////////////////
 ///////Customer PO List//////
 /////////////////////////////
-app.get('/projects/:popMsg/:border', (request, response)=>{
+app.get('/customerpo/:popMsg/:border', (request, response)=>{
   const popMsg = request.params.popMsg;
   const border = request.params.border;
   const sql = `SELECT
-                p.projectno, p.status, p.description, p.Customerid, c.customer, p.companyid, cm.company
-              FROM projects p
-              LEFT JOIN customers c on c.id = p.Customerid
-              LEFT JOIN companies cm on cm.id = p.companyid`;
-  db.all(sql, (error, projects)=>{
+                  po.id, po.projectno, pr.description, c.customer, cm.company, po.pono, po.basicpovalue
+                FROM customerpo po
+                LEFT JOIN projects pr ON pr.projectno = po.projectno
+                LEFT JOIN customers c ON c.id = pr.Customerid
+                LEFT JOIN companies cm ON cm.id = pr.companyid
+                ORDER BY po.projectno`;
+  db.all(sql, (error, pos)=>{
     if(error){
       console.log(error.message);
       const errorName = error.name;
@@ -407,11 +409,167 @@ app.get('/projects/:popMsg/:border', (request, response)=>{
       response.render("errorPage", {errorName, errorMessage, errorDetails})
     }
     else {
-      response.render('projects', {projects, popMsg, border});
+      response.render('customerpos', {pos, popMsg, border});
     }
   });
 });
 
+/////////////////////////////////
+///////Customer PO Add Form//////
+/////////////////////////////////
+app.get('/customerpoadd', (request, response)=>{
+  let sql = 'SELECT projectno FROM projects';
+  db.all(sql, (error, projects)=>{
+    if(error){
+      console.log(error.message);
+      const errorName = error.name;
+      const errorMessage = error.message;
+      const errorDetails = "Error loading Project Numbers";
+      response.render("errorPage", {errorName, errorMessage, errorDetails})
+    } else {
+      response.render('customerpoadd', {projects});
+    }
+  }); 
+});
+
+///////////////////////////////////////
+///////Customer PO Save (New)//////////
+///////////////////////////////////////
+app.post('/customerpoadd', (request, response)=>{
+  const projectno = request.body.projectno;
+  const pono = request.body.pono;
+  const podate = request.body.podate;
+  const contractualdelivery = request.body.contractualdelivery;
+  const basicpovalue = parseFloat(request.body.basicvalue);
+  const incoterms = request.body.incoterms;
+  const paymentterms = request.body.paymentterms;
+  const komdate = request.body.komdate;
+  const totaltaxes = parseFloat(request.body.totaltaxes);
+  const totaladvances = parseFloat(request.body.totaladvances);
+  const totalretention = parseFloat(request.body.totalretention);
+  const packing = request.body.packing;
+  const transport = request.body.transport;
+  const insurance = request.body.insurance;
+  const sql = `INSERT INTO customerpo (projectno, pono, podate, basicpovalue, contractualdelivery, 
+    incoterms, paymentterms, komdate, totaltaxes, totaladvances, totalretention, packing, transport, insurance) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  db.run(sql, [projectno, pono, podate, basicpovalue, contractualdelivery, incoterms, paymentterms, komdate, totaltaxes, totaladvances, totalretention, packing, transport, insurance], (error)=>{
+    if(error){
+      console.log(error.message);
+      const errorName = error.name;
+      const errorMessage = error.message;
+      const errorDetails = "Error Saving New Customer PO";
+      response.render("errorPage", {errorName, errorMessage, errorDetails})
+    } else {
+      response.redirect(`/customerpo/Customer PO created/green`);
+    }
+  });
+});
+
+/////////////////////////////
+///////Customer PO View//////
+/////////////////////////////
+app.get('/poview/:id', (request, response)=>{
+  const id = parseInt(request.params.id);
+  let sql = `SELECT id, projectno, pono, podate, basicpovalue, contractualdelivery, incoterms, paymentterms, 
+                komdate, totaltaxes, totaladvances, totalretention, packing, transport, insurance
+                from customerpo WHERE id = ?`;
+  db.get(sql, id, (error, po)=>{
+    if(error){
+      console.log(error.message);
+      const errorName = error.name;
+      const errorMessage = error.message;
+      const errorDetails = "Error reading Customer PO details";
+      response.render("errorPage", {errorName, errorMessage, errorDetails})
+    } else {
+      response.render('customerpoview', {po});
+    }
+  });
+});
+
+///////////////////////////////////
+///////Customer PO Edit Form//////
+//////////////////////////////////
+app.get('/poedit/:id', (request, response)=>{
+  const id = parseInt(request.params.id);
+  let sql = `SELECT id, projectno, pono, podate, basicpovalue, contractualdelivery,
+              incoterms, paymentterms, komdate, totaltaxes, totaladvances, totalretention,
+              packing, transport, insurance from customerpo WHERE id = ?`;
+  db.get(sql, id, (error, po)=>{
+    if(error){
+      console.log(error.message);
+      const errorName = error.name;
+      const errorMessage = error.message;
+      const errorDetails = "Error reading Customer PO details";
+      response.render("errorPage", {errorName, errorMessage, errorDetails})
+    } else {
+      response.render('customerpoedit', {po});
+    }
+  });
+});
+
+//////////////////////////////////////////
+///////Customer PO Save (Update)//////////
+//////////////////////////////////////////
+app.post('/poedit', (request, response)=>{
+  const id = parseInt(request.body.id);
+  const projectno = request.body.projectno;
+  const pono = request.body.pono;
+  const podate = request.body.podate;
+  const basicpovalue = parseFloat(request.body.basicvalue);
+  const contractualdelivery = request.body.contractualdelivery;
+  const incoterms = request.body.incoterms;
+  const paymentterms = request.body.paymentterms;
+  const komdate = request.body.komdate;
+  const totaltaxes = parseFloat(request.body.totaltaxes);
+  const totaladvances = parseFloat(request.body.totaladvances);
+  const totalretention = parseFloat(request.body.totalretention);
+  const packing = request.body.packing;
+  const transport = request.body.transport;
+  const insurance = request.body.insurance;
+  console.log(paymentterms);
+  const sql = `UPDATE customerpo SET projectno = ?, pono = ?, podate = ?, basicpovalue = ?,
+                contractualdelivery = ?, incoterms = ?, paymentterms = ?, komdate = ?,
+                totaltaxes = ?, totaladvances = ?, totalretention = ?, 
+                packing = ?, transport = ?, insurance = ? WHERE id = ?`;
+  db.run(sql, [projectno, pono, podate, basicpovalue, contractualdelivery, incoterms, paymentterms, komdate, totaltaxes, totaladvances, totalretention, packing, transport, insurance, id], (error)=>{
+    if(error){
+      console.log(error.message);
+      const errorName = error.name;
+      const errorMessage = error.message;
+      const errorDetails = "Error updating Customer PO";
+      response.render("errorPage", {errorName, errorMessage, errorDetails})
+    } else {
+      response.redirect(`/customerpo/Customer PO Updated/green`);
+    }
+  });
+});
+
+///////////////////////////////
+///////Customer PO Delete//////
+///////////////////////////////
+app.get('/podelete/:id', (request, response)=>{
+  const id = parseInt(request.params.id);
+  const sql = `DELETE FROM customerpo WHERE id = ?`;
+  db.run(sql, id, (error)=>{
+    if(error){
+      console.log(error.message);
+      const errorName = error.name;
+      const errorMessage = error.message;
+      const errorDetails = "Error deleting Customer PO";
+      response.render("errorPage", {errorName, errorMessage, errorDetails})
+    } else {
+      response.redirect(`/customerpo/Customer PO deleted/green`);
+    }
+  });
+});
+
+///////////////////////////////
+///////Billing Schedule////////
+///////////////////////////////
+app.get('/bsproject', (request, response)=>{
+  response.render('bsproject', {});
+});
 /////////////////////////////
 ///////Start the server//////
 /////////////////////////////

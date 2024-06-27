@@ -622,13 +622,65 @@ app.post('/bs', (request, response)=>{
   });
 });
 
+////////////////////////////////////
+///////Billing Schedule Edit////////
+////////////////////////////////////
+app.get('/bsedit/:id/:projectno', (request, response)=>{
+  const popMsg = '';
+  const border = '';
+  const id = parseInt(request.params.id);
+  const projectno = request.params.projectno;
+  let sql = `SELECT
+                  bs.id, bs.projectno, bs.bsno, bs.assyno, bs.section, bs.description, bs.customerref, 
+                  bs.qty, bs.unitid, u.Units, bs.billingvalue, bs.remarks, sum(bs.billingvalue) over () bstotal, po.basicpovalue pototal  
+                FROM billingscheduledata bs
+                LEFT JOIN customerpo po ON po.projectno = bs.projectno
+                LEFT JOIN units u ON u.id = bs.unitid
+                WHERE bs.projectno = ?`;
+  db.all(sql, projectno, (error, rows)=>{
+    if(error){
+      console.log(error.message);
+      const errorName = error.name;
+      const errorMessage = error.message;
+      const errorDetails = "Error loading projects";
+      response.render("errorPage", {errorName, errorMessage, errorDetails})
+    } else {
+      sql = `SELECT id, Units from Units`;
+      db.all(sql, (error, units)=>{
+        if(error){
+          console.log(error.message);
+          const errorName = error.name;
+          const errorMessage = error.message;
+          const errorDetails = "Error loading projects";
+          response.render("errorPage", {errorName, errorMessage, errorDetails})
+        } else {
+          sql = `SELECT id, projectno, bsno, assyno, section, description, customerref, qty, unitid, 
+          billingvalue, remarks FROM billingscheduledata WHERE id = ?`;
+          db.get(sql, id, (error, bsdata)=>{
+            if(error){
+              console.log(error.message);
+              const errorName = error.name;
+              const errorMessage = error.message;
+              const errorDetails = "Error loading Billing Schedule Data for Editing";
+              response.render("errorPage", {errorName, errorMessage, errorDetails})
+            }
+            else {
+              response.render('bsedit', {rows, units, projectno, bsdata, popMsg, border});
+            }
+          });
+        }
+      });
+    }
+  });
+});
+
 ///////////////////////////////
 ///////Billing Schedule////////
 ///////////////////////////////
 app.get('/bs/:projectno/:msg/:border', (request, response)=>{
-  const popMsg = request.params.popMsg;
+  const popMsg = request.params.msg;
   const border = request.params.border;
-  const projectno = request.body.projectno;
+  const projectno = request.params.projectno
   let sql = `SELECT
                   bs.id, bs.projectno, bs.bsno, bs.assyno, bs.section, bs.description, bs.customerref, 
                   bs.qty, bs.unitid, u.Units, bs.billingvalue, bs.remarks, sum(bs.billingvalue) over () bstotal, po.basicpovalue pototal  
@@ -677,7 +729,7 @@ app.post('/bssave', (request, response)=>{
   let sql = `INSERT INTO billingscheduledata 
               (projectno, bsno, assyno, section, description, customerref, qty, unitid, billingvalue, remarks) 
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-  db.run(sql, [projectno, bsno, assyno, section, description, customerref, qty, unitid, billingvalue, remarks], (error, rows)=>{
+  db.run(sql, [projectno, bsno, assyno, section, description, customerref, qty, unitid, billingvalue, remarks], (error)=>{
     if(error){
       console.log(error.message);
       const errorName = error.name;
@@ -686,6 +738,35 @@ app.post('/bssave', (request, response)=>{
       response.render("errorPage", {errorName, errorMessage, errorDetails})
     } else {
       response.redirect(`/bs/${projectno}/Billing Schedule Saved/green`);
+    }
+  });
+});
+
+//////////////////////////////////////
+///////Billing Schedule Update////////
+//////////////////////////////////////
+app.post('/bsupdate', (request, response)=>{
+  const id = parseInt(request.body.id);
+  const projectno = request.body.projectno;
+  const bsno = request.body.bsno;
+  const assyno = request.body.assyno;
+  const section = request.body.section;
+  const description = request.body.description;
+  const customerref = request.body.customerref;
+  const billingvalue = parseFloat(request.body.billingvalue);
+  const qty = parseInt(request.body.qty);
+  const unitid = parseInt(request.body.units);
+  const remarks = request.body.remarks;
+  let sql = `UPDATE billingscheduledata SET bsno = ?, assyno = ?, section = ?, description = ?, customerref = ?, qty = ?, unitid = ?, billingvalue = ?, remarks = ? WHERE id = ?`;
+  db.run(sql, [bsno, assyno, section, description, customerref, qty, unitid, billingvalue, remarks, id], (error)=>{
+    if(error){
+      console.log(error.message);
+      const errorName = error.name;
+      const errorMessage = error.message;
+      const errorDetails = "Error Updating Billing Schedule";
+      response.render("errorPage", {errorName, errorMessage, errorDetails})
+    } else {
+      response.redirect(`/bs/${projectno}/Billing Schedule Updated/green`);
     }
   });
 });

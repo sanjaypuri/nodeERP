@@ -29,7 +29,7 @@
     <div class="text-center mt-3 fs-3">
       Billing Schedule (Project <%= projectno %>)
     </div>
-    <form action="/bssave" method="post">
+    <form action="/bsupdate" method="post">
       <div class="container">
         <div class="row" style="font-size: 0.7rem;">
           <div class="col-1">BS No</div>
@@ -43,29 +43,30 @@
         </div>
         <div class="row">
           <div class="col-1">
-            <input class="form-control d-none" type="text" name="projectno" id="projectno" value="<%= projectno %>">
-            <input class="form-control w-100"  style="font-size: 0.7rem;"  type="text" name="bsno" id="bsno" required>
+            <input class="form-control d-none" type="text" name="id" id="id" value="<%= bsdata.id %>">
+            <input class="form-control d-none" type="text" name="projectno" id="projectno" value="<%= bsdata.projectno %>">
+            <input class="form-control w-100"  style="font-size: 0.7rem;"  type="text" name="bsno" id="bsno" value="<%= bsdata.bsno %>" required>
           </div>
           <div class="col-2">
-            <input class="form-control w-100"  style="font-size: 0.7rem;" type="text" name="assyno" id="assyno" required>
+            <input class="form-control w-100"  style="font-size: 0.7rem;" type="text" name="assyno" id="assyno" value="<%= bsdata.assyno %>" required>
           </div>
           <div class="col-1">
-            <input class="form-control w-100"  style="font-size: 0.7rem;" type="text" name="section" id="section" required>
+            <input class="form-control w-100"  style="font-size: 0.7rem;" type="text" name="section" id="section" value="<%= bsdata.section %>" required>
           </div>
           <div class="col-3">
-            <input class="form-control w-100"  style="font-size: 0.7rem;" type="text" name="description" id="description" required>
+            <input class="form-control w-100"  style="font-size: 0.7rem;" type="text" name="description" id="description" value="<%= bsdata.description %>" required>
           </div>
           <div class="col-1">
-            <input class="form-control w-100"  style="font-size: 0.7rem;" type="text" name="customerref" id="customerref">
+            <input class="form-control w-100"  style="font-size: 0.7rem;" type="text" name="customerref" id="customerref" value="<%= bsdata.customerref %>">
           </div>
           <div class="col-2">
-            <input class="form-control w-100"  style="font-size: 0.7rem;" type="number" min="0.01" step="0.01" name="billingvalue" id="billingvalue" required>
+            <input class="form-control w-100"  style="font-size: 0.7rem;" type="number" min="0.01" step="0.01" name="billingvalue" id="billingvalue" value="<%= bsdata.billingvalue %>" required>
           </div>
           <div class="col-1">
-            <input class="form-control w-100"  style="font-size: 0.7rem;" type="number" min="0.1" step="0.1" name="qty" id="qty" required>
+            <input class="form-control w-100"  style="font-size: 0.7rem;" type="number" min="0.1" step="0.1" name="qty" id="qty" value="<%= bsdata.qty %>" required>
           </div>
           <div class="col-1">
-            <select class="form-select"   style="font-size: 0.7rem;" name="units">
+            <select class="form-select"   style="font-size: 0.7rem;" name="units" id="units">
               <option value="0" selected>select...</option>
               <% units.map((unit)=>{ %>
                 <option value="<%= unit.id %>"><%= unit.Units %></option>
@@ -78,7 +79,7 @@
         </div>
         <div class="row">
           <div class="col-3">
-            <input class="form-control w-100"  style="font-size: 0.7rem;" type="text" name="remarks" id="remarks">
+            <input class="form-control w-100"  style="font-size: 0.7rem;" type="text" name="remarks" id="remarks" value="<%= bsdata.remarks %>">
           </div>
           <div class="col-1">
             <button class="btn btn-sm btn-primary" id="btnSubmit" type="submit">Add</button>
@@ -112,7 +113,6 @@
             <th>Customer Ref</th>
             <th class="text-end">Billing Value<br>Qty</th>
             <th>Remarks</th>
-            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -124,9 +124,6 @@
               <td><%= row.customerref %></td>
               <td class="text-end"><%= (row.billingvalue).toLocaleString('en-in', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %><br><%= row.qty %> <%= row.Units %></td>
               <td><%= row.remarks %></td>
-              <td>
-                <a href="/bsedit/<%= row.id %>/<%= projectno%>"><span class="material-symbols-outlined">edit</span></a>
-              </td>
             </tr>
           <% }) %>
         </tbody>
@@ -136,6 +133,8 @@
     <script>
       const popMsg = "<%= popMsg %>";
       const border = "<%= border %>";
+      const units = "<%= units.id %>"
+      document.getElementById('units').value = units;
 
       thisMsg = '';
       function showAlert(msg, color, duration){
